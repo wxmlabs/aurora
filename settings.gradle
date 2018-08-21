@@ -1,0 +1,10 @@
+rootProject.name = 'aurora'
+
+def subProjects = ['api', 'core', 'rmi', 'service']
+
+include subProjects as String[]
+
+subProjects.each { name ->
+    project(":$name").name = "${rootProject.name}-$name"
+}
+

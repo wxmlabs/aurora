@@ -1,0 +1,97 @@
+allprojects {
+    group 'com.wxmlabs'
+    version '1.0'
+
+    ext {
+        // "-Ditrusign.releases" to archive release version
+        isReleaseVersion = System.properties["wxmlabs.releases"] != null
+    }
+    version = isReleaseVersion ? version : "$version-SNAPSHOT"
+}
+
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'jacoco'
+    apply plugin: 'maven'
+    apply plugin: 'signing'
+
+    repositories {
+        mavenCentral()
+    }
+
+    ext {
+        spockVersion = '1.1-groovy-2.4'
+    }
+
+    dependencies {
+        compile("org.slf4j:slf4j-api:1.7.5")
+        compile("commons-io:commons-io:2.5")
+        compile("commons-codec:commons-codec:1.10")
+        compile("org.apache.httpcomponents:httpclient:4.5.3")
+
+        // for development environment logging
+        runtimeOnly("ch.qos.logback:logback-classic:1.2.3")
+
+        // spock framework for unit test
+        testCompile("org.spockframework:spock-core:${spockVersion}") {
+            exclude module: 'groovy-all'
+        }
+        testCompile("org.codehaus.groovy:groovy:2.4.12")
+    }
+
+    compileJava {
+        sourceCompatibility = 1.6
+    }
+
+    // 解决文件编码问题
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+    }
+
+    jacocoTestReport {
+        reports {
+            xml.enabled true
+            html.enabled false
+        }
+    }
+
+    check.dependsOn jacocoTestReport
+
+    //打包源代码
+    task sourcesJar(type: Jar, dependsOn: classes) {
+        classifier = 'sources'
+        from sourceSets.main.allSource
+    }
+
+    artifacts {
+        archives sourcesJar
+    }
+
+    signing {
+        required { isReleaseVersion && gradle.taskGraph.hasTask("uploadArchives") }
+        sign configurations.archives
+    }
+
+    uploadArchives {
+        repositories {
+            mavenDeployer {
+                beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+                repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2") {
+                    authentication(userName: ossrhUserName, password: ossrhPassword)
+                }
+
+                snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots") {
+                    authentication(userName: ossrhUserName, password: ossrhPassword)
+                }
+
+                pom.project {
+                    name 'Aurora Cryptography'
+                    packaging 'jar'
+                    description 'a simple digital signature signer'
+                    url 'https://github.com/wxmlabs/aurora'
+                }
+            }
+        }
+    }
+}
