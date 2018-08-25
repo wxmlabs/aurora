@@ -10,7 +10,7 @@ allprojects {
 }
 
 subprojects {
-    apply plugin: 'java'
+    apply plugin: 'groovy'
     apply plugin: 'jacoco'
     apply plugin: 'maven'
     apply plugin: 'signing'
@@ -28,6 +28,7 @@ subprojects {
         compile("commons-io:commons-io:2.5")
         compile("commons-codec:commons-codec:1.10")
         compile("org.apache.httpcomponents:httpclient:4.5.3")
+        compile("com.google.code.gson:gson:2.8.5")
 
         // for development environment logging
         runtimeOnly("ch.qos.logback:logback-classic:1.2.3")

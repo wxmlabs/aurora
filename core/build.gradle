@@ -1,0 +1,4 @@
+dependencies {
+    compile project(":aurora-api")
+    compile "org.bouncycastle:bcpkix-jdk15on:1.60"
+}
