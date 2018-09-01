@@ -1,7 +1,11 @@
 .gradle
 build/
-*.classes
+*.class
 .idea/
 *.iml
-
+.project
+.classpath
+bin/
+.settings/
 .DS_Store
+*.log
