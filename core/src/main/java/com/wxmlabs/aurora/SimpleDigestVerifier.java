@@ -7,20 +7,25 @@ import java.security.Signature;
 import java.security.SignatureException;
 
 
-public class SimpleVerifier implements Verifier {
-    private PublicKey publicKey;
+public class SimpleDigestVerifier implements DigestVerifier {
+    private PublicKey signerPub;
     private DigestAlgorithm defaultDigestAlg;
 
-    public SimpleVerifier(PublicKey publicKey, DigestAlgorithm defaultDigestAlg) {
-        this.publicKey = publicKey;
+    public SimpleDigestVerifier(PublicKey signerPub, DigestAlgorithm defaultDigestAlg) {
+        this.signerPub = signerPub;
         this.defaultDigestAlg = defaultDigestAlg;
     }
 
     @Override
     public boolean verify(byte[] plaintext, byte[] signature) {
+        return verify(plaintext, signature, defaultDigestAlg);
+    }
+
+    @Override
+    public boolean verify(byte[] plaintext, byte[] signature, DigestAlgorithm digestAlgorithm) {
         try {
-            Signature verifier = BCProviderHelper.getSignatureInstance(SignatureAlgorithmNameGenerator.getSignatureAlg(defaultDigestAlg, publicKey));
-            verifier.initVerify(publicKey);
+            Signature verifier = BCProviderHelper.getSignatureInstance(SignatureAlgorithmNameGenerator.getSignatureAlg(digestAlgorithm, signerPub));
+            verifier.initVerify(signerPub);
             verifier.update(plaintext);
             return verifier.verify(signature);
         } catch (NoSuchAlgorithmException e) {

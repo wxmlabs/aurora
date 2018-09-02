@@ -4,11 +4,11 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.wxmlabs.aurora.BCProviderHelper;
 import com.wxmlabs.aurora.DigestAlgorithm;
 import com.wxmlabs.aurora.MemorySignatureService;
 import com.wxmlabs.aurora.SignatureAlgorithmNameGenerator;
 import com.wxmlabs.aurora.SignatureService;
+import com.wxmlabs.aurora.SimpleCMSSigner;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -17,14 +17,14 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.Enumeration;
 
 public class TCACompatibleSignatureService {
     public static SignatureService getInstance(String json) {
-        SignatureService signatureService = new MemorySignatureService();
+        MemorySignatureService signatureService = new MemorySignatureService();
 
         JsonObject tcaConfig = new JsonParser().parse(json).getAsJsonObject();
         JsonArray keyStoreCfgArray = tcaConfig.getAsJsonArray("keyStore");
@@ -36,17 +36,17 @@ public class TCACompatibleSignatureService {
             char[] password = keyStoreCfg.get("password").getAsString().toCharArray();
 
             try {
-                KeyStore ks = KeyStore.getInstance(type, BCProviderHelper.getProvider());
+                KeyStore ks = KeyStore.getInstance(type);
                 ks.load(new FileInputStream(keyStorePath), password);
                 Enumeration<String> aliases = ks.aliases();
                 while (aliases.hasMoreElements()) {
                     String alias = aliases.nextElement();
                     if (ks.isKeyEntry(alias)) {
-                        PrivateKey privateKey = (PrivateKey) ks.getKey(alias, password);
-                        PublicKey publicKey = ks.getCertificate(alias).getPublicKey();
-                        DigestAlgorithm defaultDigestAlg = SignatureAlgorithmNameGenerator.getDefaultDigestAlg(privateKey);
-                        signatureService.addSigner(name, privateKey, defaultDigestAlg);
-                        signatureService.addVerifier(name, publicKey, defaultDigestAlg);
+                        PrivateKey signerKey = (PrivateKey) ks.getKey(alias, password);
+                        X509Certificate signerCert = (X509Certificate) ks.getCertificate(alias);
+                        DigestAlgorithm defaultDigestAlg = SignatureAlgorithmNameGenerator.getDefaultDigestAlg(signerKey);
+                        signatureService.addSigner(name + "_" + alias, new SimpleCMSSigner(signerKey, signerCert, defaultDigestAlg, true));
+                        signatureService.addCMSVerifier(name + "_" + alias, signerCert);
                     }
                 }
             } catch (KeyStoreException e1) {

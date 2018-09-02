@@ -8,20 +8,25 @@ import java.security.SignatureException;
 
 import static com.wxmlabs.aurora.SignatureAlgorithmNameGenerator.getSignatureAlg;
 
-public class SimpleSigner implements Signer {
-    private PrivateKey privateKey;
+public class SimpleDigestSigner implements DigestSigner {
+    private PrivateKey signerKey;
     private DigestAlgorithm defaultDigestAlg;
 
-    public SimpleSigner(PrivateKey privateKey, DigestAlgorithm defaultDigestAlg) {
-        this.privateKey = privateKey;
+    public SimpleDigestSigner(PrivateKey signerKey, DigestAlgorithm defaultDigestAlg) {
+        this.signerKey = signerKey;
         this.defaultDigestAlg = defaultDigestAlg;
     }
 
     @Override
     public byte[] sign(byte[] plaintext) {
+        return sign(plaintext, defaultDigestAlg);
+    }
+
+    @Override
+    public byte[] sign(byte[] plaintext, DigestAlgorithm digestAlgorithm) {
         try {
-            Signature verifier = BCProviderHelper.getSignatureInstance(getSignatureAlg(defaultDigestAlg, privateKey));
-            verifier.initSign(privateKey);
+            Signature verifier = BCProviderHelper.getSignatureInstance(getSignatureAlg(digestAlgorithm, signerKey));
+            verifier.initSign(signerKey);
             verifier.update(plaintext);
             return verifier.sign();
         } catch (NoSuchAlgorithmException e) {

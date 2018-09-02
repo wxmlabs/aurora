@@ -3,7 +3,7 @@ allprojects {
     version '1.0'
 
     ext {
-        // "-Ditrusign.releases" to archive release version
+        // "-Dwxmlabs.releases" to archive release version
         isReleaseVersion = System.properties["wxmlabs.releases"] != null
     }
     version = isReleaseVersion ? version : "$version-SNAPSHOT"
@@ -15,6 +15,8 @@ subprojects {
     apply plugin: 'maven'
     apply plugin: 'signing'
 
+    sourceCompatibility = 1.6
+
     repositories {
         mavenCentral()
     }
@@ -25,9 +27,6 @@ subprojects {
 
     dependencies {
         compile("org.slf4j:slf4j-api:1.7.5")
-        compile("commons-io:commons-io:2.5")
-        compile("commons-codec:commons-codec:1.10")
-        compile("org.apache.httpcomponents:httpclient:4.5.3")
         compile("com.google.code.gson:gson:2.8.5")
 
         // for development environment logging
@@ -40,13 +39,34 @@ subprojects {
         testCompile("org.codehaus.groovy:groovy:2.4.12")
     }
 
-    compileJava {
-        sourceCompatibility = 1.6
-    }
-
     // 解决文件编码问题
     tasks.withType(JavaCompile) {
         options.encoding = 'UTF-8'
+    }
+
+    if (javaHome) {
+        def javaExecutablesPath = new File(javaHome, 'bin')
+        def javaExecutables = [:].withDefault { execName ->
+            if (org.gradle.internal.os.OperatingSystem.current().isWindows()) {
+                execName = "${execName}.exe"
+            }
+            def executable = new File(javaExecutablesPath, execName.toString())
+            assert executable.exists(): "There is no ${execName} executable in ${javaExecutablesPath}"
+            executable
+        }
+        tasks.withType(JavaCompile) {
+            options.fork = true
+            options.forkOptions.javaHome = file(javaHome)
+        }
+        tasks.withType(Javadoc) {
+            executable = javaExecutables.javadoc
+        }
+        tasks.withType(Test) {
+            executable = javaExecutables.java
+        }
+        tasks.withType(JavaExec) {
+            executable = javaExecutables.java
+        }
     }
 
     jacocoTestReport {
@@ -57,16 +77,6 @@ subprojects {
     }
 
     check.dependsOn jacocoTestReport
-
-    //打包源代码
-    task sourcesJar(type: Jar, dependsOn: classes) {
-        classifier = 'sources'
-        from sourceSets.main.allSource
-    }
-
-    artifacts {
-        archives sourcesJar
-    }
 
     signing {
         required { isReleaseVersion && gradle.taskGraph.hasTask("uploadArchives") }
@@ -89,7 +99,7 @@ subprojects {
                 pom.project {
                     name 'Aurora Cryptography'
                     packaging 'jar'
-                    description 'a simple digital signature signer'
+                    description 'Aurora Cryptography - a simple digital signature signer'
                     url 'https://github.com/wxmlabs/aurora'
                 }
             }
