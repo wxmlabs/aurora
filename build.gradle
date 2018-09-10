@@ -1,3 +1,9 @@
+buildscript {
+    dependencies {
+        classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.6.2"
+    }
+}
+
 allprojects {
     group 'com.wxmlabs'
     version '1.0'
@@ -14,6 +20,7 @@ subprojects {
     apply plugin: 'jacoco'
     apply plugin: 'maven'
     apply plugin: 'signing'
+    apply plugin: 'org.sonarqube'
 
     sourceCompatibility = 1.6
 
@@ -43,8 +50,6 @@ subprojects {
     tasks.withType(AbstractCompile) {
         options.encoding = 'UTF-8'
     }
-
-    // 解决文件编码问题
     tasks.withType(Javadoc) {
         options.encoding = 'UTF-8'
     }
@@ -78,6 +83,13 @@ subprojects {
         reports {
             xml.enabled true
             html.enabled false
+        }
+    }
+
+    sonarqube {
+        properties {
+            property 'sonar.sourceEncoding', 'UTF-8'
+            property 'sonar.java.coveragePlugin', 'jacoco'
         }
     }
 
