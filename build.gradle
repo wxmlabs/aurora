@@ -1,6 +1,6 @@
 allprojects {
     group 'com.wxmlabs'
-    version '1.0'
+    version '1.1'
 
     ext {
         // "-Dwxmlabs.releases" to archive release version
