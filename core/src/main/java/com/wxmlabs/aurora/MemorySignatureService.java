@@ -7,7 +7,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class MemorySignatureService implements SignatureService, DigestSignatureService, CMSSignatureService {
+public class MemorySignatureService implements SignatureManager, SignatureService, DigestSignatureService {
     private Map<String, Signer> signerMap;
     private Map<String, Verifier> verifierMap;
 

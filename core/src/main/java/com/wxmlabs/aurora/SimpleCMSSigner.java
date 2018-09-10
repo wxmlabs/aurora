@@ -35,6 +35,10 @@ public class SimpleCMSSigner implements CMSSigner {
         this.directSignature = false;
     }
 
+    /*
+     * If directSignature is true, the signer signature will be based on the data, not
+     * a collection of signed attributes, and no signed attributes will be included.
+     */
     public SimpleCMSSigner(PrivateKey signerKey, X509Certificate signerCert, DigestAlgorithm defaultDigestAlg, boolean directSignature) {
         this.signerKey = signerKey;
         this.signerCert = signerCert;
