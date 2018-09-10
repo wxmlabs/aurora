@@ -9,6 +9,7 @@ import com.wxmlabs.aurora.MemorySignatureService;
 import com.wxmlabs.aurora.SignatureAlgorithmNameGenerator;
 import com.wxmlabs.aurora.SignatureService;
 import com.wxmlabs.aurora.SimpleCMSSigner;
+import com.wxmlabs.aurora.SimpleCMSVerifier;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -64,6 +65,7 @@ public class TCACompatibleSignatureService {
                 e.printStackTrace(); // 无法还原Key
             }
         }
+        signatureService.addVerifier("CMSVerifier", new SimpleCMSVerifier()); // 不指定证书进行验证
         return signatureService;
     }
 }

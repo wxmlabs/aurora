@@ -1,5 +1,6 @@
 package com.wxmlabs.aurora;
 
+import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cms.CMSException;
 import org.bouncycastle.cms.CMSProcessableByteArray;
 import org.bouncycastle.cms.CMSSignedData;
@@ -10,15 +11,22 @@ import org.bouncycastle.cms.SignerInformationStore;
 import org.bouncycastle.cms.jcajce.JcaSignerId;
 import org.bouncycastle.cms.jcajce.JcaSimpleSignerInfoVerifierBuilder;
 import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.util.Selector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
+import java.util.Iterator;
 
 public class SimpleCMSVerifier implements CMSVerifier {
-    public static Logger log = LoggerFactory.getLogger(SimpleCMSVerifier.class);
-    private X509Certificate signerCert;
+    private static Logger log = LoggerFactory.getLogger(SimpleCMSVerifier.class);
+    private final X509Certificate signerCert;
+
+    public SimpleCMSVerifier() {
+        this.signerCert = null;
+    }
 
     public SimpleCMSVerifier(X509Certificate signerCert) {
         this.signerCert = signerCert;
@@ -45,18 +53,39 @@ public class SimpleCMSVerifier implements CMSVerifier {
     }
 
     private boolean verify(CMSSignedData sigData) {
-        SignerId signerId = new JcaSignerId(signerCert);
         SignerInformationStore signerStore = sigData.getSignerInfos();
-        Collection<SignerInformation> signers = signerStore.getSigners(signerId);
+        Collection<SignerInformation> signers;
+        if (signerCert == null) {
+            signers = signerStore.getSigners();
+        } else {
+            SignerId signerId = new JcaSignerId(signerCert);
+            signers = signerStore.getSigners(signerId);
+        }
+
         int total = signers.size();
         int verified = 0;
         for (SignerInformation signer : signers) {
+            X509Certificate verifier;
+            if (signerCert != null) {
+                verifier = signerCert;
+            } else {
+                @SuppressWarnings("unchecked") Selector<X509CertificateHolder> selector = signer.getSID();
+                Collection<X509CertificateHolder> certCollection = sigData.getCertificates().getMatches(selector);
+                Iterator<X509CertificateHolder> certIt = certCollection.iterator();
+                X509CertificateHolder cert = certIt.next();
+                try {
+                    verifier = BCProviderHelper.INSTANCE.convertCertificate(cert);
+                } catch (CertificateException e) {
+                    log.error("parsing CMS SignedData Certificate failed: " + e.getMessage(), e);
+                    break;
+                }
+            }
             try {
-                if (signer.verify(new JcaSimpleSignerInfoVerifierBuilder().setProvider(BCProviderHelper.INSTANCE.getProvider()).build(signerCert))) {
+                if (signer.verify(new JcaSimpleSignerInfoVerifierBuilder().setProvider(BCProviderHelper.INSTANCE.getProvider()).build(verifier))) {
                     verified++;
                 }
             } catch (CMSVerifierCertificateNotValidException e) {
-                log.info(e.getMessage() + "\n  verifier: " + LoggerUtil.certInfo(signerCert));
+                log.info("verifier certificate not valid: " + LoggerUtil.certInfo(verifier) + " cause: " + e.getMessage());
             } catch (CMSException e) {
                 e.printStackTrace();
             } catch (OperatorCreationException e) {
