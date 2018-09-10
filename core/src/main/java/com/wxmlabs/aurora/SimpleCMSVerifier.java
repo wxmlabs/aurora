@@ -52,7 +52,7 @@ public class SimpleCMSVerifier implements CMSVerifier {
         int verified = 0;
         for (SignerInformation signer : signers) {
             try {
-                if (signer.verify(new JcaSimpleSignerInfoVerifierBuilder().setProvider(BCProviderHelper.getProvider()).build(signerCert))) {
+                if (signer.verify(new JcaSimpleSignerInfoVerifierBuilder().setProvider(BCProviderHelper.INSTANCE.getProvider()).build(signerCert))) {
                     verified++;
                 }
             } catch (CMSVerifierCertificateNotValidException e) {

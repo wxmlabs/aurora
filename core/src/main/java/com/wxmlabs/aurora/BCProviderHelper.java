@@ -1,23 +1,13 @@
 package com.wxmlabs.aurora;
 
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.jcajce.util.BCJcaJceHelper;
 
-import java.security.NoSuchAlgorithmException;
-import java.security.Security;
-import java.security.Signature;
+import java.security.Provider;
 
-class BCProviderHelper {
-    private static final BouncyCastleProvider PROVIDER = new BouncyCastleProvider();
+class BCProviderHelper extends BCJcaJceHelper {
+    static final BCProviderHelper INSTANCE = new BCProviderHelper();
 
-    static {
-        Security.addProvider(PROVIDER);
-    }
-
-    static BouncyCastleProvider getProvider() {
-        return PROVIDER;
-    }
-
-    static Signature getSignatureInstance(String algorithm) throws NoSuchAlgorithmException {
-        return Signature.getInstance(algorithm, PROVIDER);
+    Provider getProvider() {
+        return provider;
     }
 }

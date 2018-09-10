@@ -58,11 +58,11 @@ public class SimpleCMSSigner implements CMSSigner {
             Store certs = new JcaCertStore(certList);
 
             CMSSignedDataGenerator gen = new CMSSignedDataGenerator();
-            ContentSigner contentSigner = new JcaContentSignerBuilder(getSignatureAlg(defaultDigestAlg, signerKey)).setProvider(BCProviderHelper.getProvider()).build(signerKey);
+            ContentSigner contentSigner = new JcaContentSignerBuilder(getSignatureAlg(defaultDigestAlg, signerKey)).setProvider(BCProviderHelper.INSTANCE.getProvider()).build(signerKey);
 
             gen.addSignerInfoGenerator(
                 new JcaSignerInfoGeneratorBuilder(
-                    new JcaDigestCalculatorProviderBuilder().setProvider(BCProviderHelper.getProvider()).build())
+                    new JcaDigestCalculatorProviderBuilder().setProvider(BCProviderHelper.INSTANCE.getProvider()).build())
                     .setDirectSignature(directSignature)
                     .build(contentSigner, signerCert));
 

@@ -25,7 +25,7 @@ public class SimpleDigestSigner implements DigestSigner {
     @Override
     public byte[] sign(byte[] plaintext, DigestAlgorithm digestAlgorithm) {
         try {
-            Signature verifier = BCProviderHelper.getSignatureInstance(getSignatureAlg(digestAlgorithm, signerKey));
+            Signature verifier = BCProviderHelper.INSTANCE.createSignature(getSignatureAlg(digestAlgorithm, signerKey));
             verifier.initSign(signerKey);
             verifier.update(plaintext);
             return verifier.sign();

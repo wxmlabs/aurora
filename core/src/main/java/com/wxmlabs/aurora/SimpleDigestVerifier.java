@@ -24,7 +24,7 @@ public class SimpleDigestVerifier implements DigestVerifier {
     @Override
     public boolean verify(byte[] plaintext, byte[] signature, DigestAlgorithm digestAlgorithm) {
         try {
-            Signature verifier = BCProviderHelper.getSignatureInstance(SignatureAlgorithmNameGenerator.getSignatureAlg(digestAlgorithm, signerPub));
+            Signature verifier = BCProviderHelper.INSTANCE.createSignature(SignatureAlgorithmNameGenerator.getSignatureAlg(digestAlgorithm, signerPub));
             verifier.initVerify(signerPub);
             verifier.update(plaintext);
             return verifier.verify(signature);
