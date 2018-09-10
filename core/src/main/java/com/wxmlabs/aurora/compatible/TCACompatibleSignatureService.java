@@ -44,9 +44,10 @@ public class TCACompatibleSignatureService {
                     if (ks.isKeyEntry(alias)) {
                         PrivateKey signerKey = (PrivateKey) ks.getKey(alias, password);
                         X509Certificate signerCert = (X509Certificate) ks.getCertificate(alias);
+                        String serial = signerCert.getSerialNumber().toString(16);
                         DigestAlgorithm defaultDigestAlg = SignatureAlgorithmNameGenerator.getDefaultDigestAlg(signerKey);
-                        signatureService.addSigner(name + "_" + alias, new SimpleCMSSigner(signerKey, signerCert, defaultDigestAlg, true));
-                        signatureService.addCMSVerifier(name + "_" + alias, signerCert);
+                        signatureService.addSigner(name + "_" + serial, new SimpleCMSSigner(signerKey, signerCert, defaultDigestAlg, true));
+                        signatureService.addCMSVerifier(name + "_" + serial, signerCert);
                     }
                 }
             } catch (KeyStoreException e1) {
