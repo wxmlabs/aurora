@@ -3,7 +3,7 @@ package com.wxmlabs.aurora;
 import java.lang.reflect.Method;
 import java.security.spec.ECParameterSpec;
 
-public class ECParameterSpecUtil {
+class ECParameterSpecUtil {
     static boolean isSM2ECC(ECParameterSpec spec) {
         return spec.getCurve().getField().getFieldSize() == 256
             && spec.getCurve().getA().toString().equals("115792089210356248756420345214020892766250353991924191454421193933289684991996") // c

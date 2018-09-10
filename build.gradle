@@ -40,7 +40,12 @@ subprojects {
     }
 
     // 解决文件编码问题
-    tasks.withType(JavaCompile) {
+    tasks.withType(AbstractCompile) {
+        options.encoding = 'UTF-8'
+    }
+
+    // 解决文件编码问题
+    tasks.withType(Javadoc) {
         options.encoding = 'UTF-8'
     }
 
@@ -78,6 +83,20 @@ subprojects {
 
     check.dependsOn jacocoTestReport
 
+    task javadocJar(type: Jar) {
+        classifier = 'javadoc'
+        from javadoc
+    }
+
+    task sourcesJar(type: Jar) {
+        classifier = 'sources'
+        from sourceSets.main.allSource
+    }
+
+    artifacts {
+        archives javadocJar, sourcesJar
+    }
+
     signing {
         required { isReleaseVersion && gradle.taskGraph.hasTask("uploadArchives") }
         sign configurations.archives
@@ -101,6 +120,27 @@ subprojects {
                     packaging 'jar'
                     description 'Aurora Cryptography - a simple digital signature signer'
                     url 'https://github.com/wxmlabs/aurora'
+
+                    scm {
+                        connection 'scm:git:https://github.com/wxmlabs/aurora.git'
+                        developerConnection 'scm:git:ssh:git@github.com:wxmlabs/aurora.git'
+                        url 'https://github.com/wxmlabs/aurora/'
+                    }
+
+                    licenses {
+                        license {
+                            name 'GNU Lesser General Public License v3.0'
+                            url 'http://www.gnu.org/licenses/lgpl-3.0.txt'
+                        }
+                    }
+
+                    developers {
+                        developer {
+                            id 'wxmlabs'
+                            name 'WXM Labs'
+                            email 'wxmlabs@vselect.com'
+                        }
+                    }
                 }
             }
         }
