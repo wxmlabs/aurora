@@ -40,7 +40,7 @@ subprojects {
     }
 
     // 解决文件编码问题
-    tasks.withType(AbstractCompile) {
+    tasks.withType(JavaCompile) {
         options.encoding = 'UTF-8'
     }
 
