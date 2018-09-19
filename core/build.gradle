@@ -1,4 +1,5 @@
 dependencies {
     compile project(":aurora-api")
-    compile "org.bouncycastle:bcpkix-jdk15on:1.60"
+    compile("com.google.code.gson:gson:2.8.5")
+    compile("org.bouncycastle:bcpkix-jdk15on:1.60")
 }

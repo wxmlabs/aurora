@@ -1,6 +1,7 @@
 allprojects {
     group 'com.wxmlabs'
     version '1.1'
+    description 'Aurora Cryptography'
 
     ext {
         // "-Dwxmlabs.releases" to archive release version
@@ -15,8 +16,6 @@ subprojects {
     apply plugin: 'maven'
     apply plugin: 'signing'
 
-    sourceCompatibility = 1.6
-
     repositories {
         mavenCentral()
     }
@@ -25,10 +24,10 @@ subprojects {
         spockVersion = '1.1-groovy-2.4'
     }
 
+    sourceCompatibility = 1.6
+
     dependencies {
         compile("org.slf4j:slf4j-api:1.7.5")
-        compile("com.google.code.gson:gson:2.8.5")
-
         // for development environment logging
         runtimeOnly("ch.qos.logback:logback-classic:1.2.3")
 
@@ -74,14 +73,26 @@ subprojects {
         }
     }
 
-    jacocoTestReport {
-        reports {
-            xml.enabled true
-            html.enabled false
+    jar {
+        manifest {
+            attributes(
+                    'Created-By': "${System.properties['java.version']} (${System.properties['java.vendor']} ${System.properties['java.vm.version']})".toString(),
+                    'Implementation-Title': project.description,
+                    'Implementation-Version': project.version,
+                    'Implementation-Vendor': 'WXM Labs'
+            )
         }
     }
 
-    check.dependsOn jacocoTestReport
+    javadoc {
+        title = "$project.description $project.version API"
+        exclude 'com/wxmlabs/aurora/internal/**'
+        options {
+            links "https://docs.gradle.org/${GradleVersion.current().version}/javadoc/",
+                    'https://docs.oracle.com/javase/6/docs/api/',
+                    "http://docs.groovy-lang.org/${GroovySystem.version}/html/gapi/"
+        }
+    }
 
     task javadocJar(type: Jar) {
         classifier = 'javadoc'
@@ -94,8 +105,18 @@ subprojects {
     }
 
     artifacts {
-        archives javadocJar, sourcesJar
+        archives sourcesJar
+        archives javadocJar
     }
+
+    jacocoTestReport {
+        reports {
+            xml.enabled true
+            html.enabled true
+        }
+    }
+
+    check.dependsOn jacocoTestReport
 
     signing {
         required { isReleaseVersion && gradle.taskGraph.hasTask("uploadArchives") }
@@ -108,11 +129,15 @@ subprojects {
                 beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
 
                 repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2") {
-                    authentication(userName: ossrhUserName, password: ossrhPassword)
+                    if (project.hasProperty('ossrhUserName') && project.hasProperty('ossrhPassword')) {
+                        authentication(userName: ossrhUserName, password: ossrhPassword)
+                    }
                 }
 
                 snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots") {
-                    authentication(userName: ossrhUserName, password: ossrhPassword)
+                    if (project.hasProperty('ossrhUserName') && project.hasProperty('ossrhPassword')) {
+                        authentication(userName: ossrhUserName, password: ossrhPassword)
+                    }
                 }
 
                 pom.project {
@@ -137,7 +162,7 @@ subprojects {
                     developers {
                         developer {
                             id 'wxmlabs'
-                            name 'WXM Labs'
+                            name 'wxmLabs'
                             email 'wxmlabs@vselect.com'
                         }
                     }

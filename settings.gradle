@@ -1,6 +1,6 @@
 rootProject.name = 'aurora'
 
-def subProjects = ['api', 'core', 'rmi', 'service']
+def subProjects = ['api', 'core', 'core-bundle','', 'rmi', 'service']
 
 include subProjects as String[]
 

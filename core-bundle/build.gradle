@@ -1,0 +1,59 @@
+plugins{
+    id
+}
+
+configurations {
+    jarjar
+}
+
+dependencies {
+    compile project(":aurora-core")
+    jarjar "com.googlecode.jarjar:jarjar:1.3"
+}
+
+task jarJarJar(type: org.gradle.build.JarJarJar) {
+    ext.shadedPackage = 'org.gradle.jarjar'
+    from sourceSets.main.output
+    from { configurations.runtime.collect { zipTree(it) } }
+
+    exclude 'api-mapping.txt'
+    exclude 'default-imports.txt'
+    exclude 'META-INF/**'
+    exclude 'gradle-plugins.properties'
+    exclude 'fr/jayasoft/ivy/ant/**'
+    exclude 'net/rubygrapefruit/platform/**'
+    exclude 'com/sun/jna/**'
+    exclude 'org/fusesource/jansi/**'
+    exclude 'images/**'
+    exclude 'license/**'
+    exclude 'licenses/**'
+    exclude 'LICENSE.txt'
+    exclude 'mozilla/**'
+    exclude 'module.properties'
+    exclude '*.html'
+
+    rule('org.gradle.**', '@0')
+    rule('org.apache.tools.ant.**', '@0')
+    rule('groovy.**', '@0')
+    rule('org.slf4j.**', '@0')
+    rule('javax.inject.Inject', '@0')
+    rule('org.**', "${shadedPackage}.@0")
+    rule('com.**', "${shadedPackage}.@0")
+    rule('net.**', "${shadedPackage}.@0")
+    rule('jcifs.**', "${shadedPackage}.@0")
+
+    keep('org.gradle.**')
+    keep('com.wxmlabs.**')
+
+    Date start
+
+    doFirst {
+        start = new Date()
+    }
+
+    doLast {
+        Date stop = new Date()
+        def td = groovy.time.TimeCategory.minus( stop, start )
+        logger.quiet "Elapsed time to generate Gradle API jarJar: $td"
+    }
+}
